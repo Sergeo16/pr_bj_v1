@@ -1,0 +1,110 @@
+import { NextRequest } from 'next/server';
+import { getPool } from '@/lib/db';
+
+// Empêcher le pré-rendu de cette route (nécessite DB)
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest) {
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (data: any) => {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+      };
+
+      const pool = getPool();
+
+      // Fonction pour récupérer seulement les stats synthèse (pour les diagrammes et totaux)
+      const fetchStats = async () => {
+        try {
+          // Statistiques nationales totales uniquement
+          const nationalStats = await pool.query(`
+            SELECT 
+              COALESCE(SUM(inscrits), 0) as total_inscrits,
+              COALESCE(SUM(votants), 0) as total_votants,
+              COALESCE(SUM(bulletins_nuls), 0) as total_bulletins_nuls,
+              COALESCE(SUM(bulletins_blancs), 0) as total_bulletins_blancs,
+              COALESCE(SUM(suffrages_exprimes), 0) as total_suffrages_exprimes,
+              COALESCE(SUM(voix_wadagni_talata), 0) as total_wadagni_talata,
+              COALESCE(SUM(voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
+            FROM vote
+          `);
+
+          const stats = nationalStats.rows[0];
+          const totalInscrits = parseInt(stats.total_inscrits, 10);
+          const totalVotants = parseInt(stats.total_votants, 10);
+          const tauxParticipation = totalInscrits > 0 
+            ? ((totalVotants / totalInscrits) * 100).toFixed(2)
+            : '0.00';
+          const totalVoix = parseInt(stats.total_wadagni_talata, 10) + parseInt(stats.total_hounkpe_hounwanou, 10);
+
+          const byDuo = [
+            {
+              id: 1,
+              label: 'WADAGNI - TALATA',
+              total: parseInt(stats.total_wadagni_talata, 10),
+              percentage: totalVoix > 0 
+                ? ((parseInt(stats.total_wadagni_talata, 10) / totalVoix) * 100).toFixed(2)
+                : '0.00',
+            },
+            {
+              id: 2,
+              label: 'HOUNKPE - HOUNWANOU',
+              total: parseInt(stats.total_hounkpe_hounwanou, 10),
+              percentage: totalVoix > 0
+                ? ((parseInt(stats.total_hounkpe_hounwanou, 10) / totalVoix) * 100).toFixed(2)
+                : '0.00',
+            },
+          ];
+
+          // Envoyer seulement les données synthèse (pour les diagrammes et totaux)
+          send({
+            type: 'stats',
+            data: {
+              national: {
+                totalInscrits,
+                totalVotants,
+                tauxParticipation,
+                totalBulletinsNuls: parseInt(stats.total_bulletins_nuls, 10),
+                totalBulletinsBlancs: parseInt(stats.total_bulletins_blancs, 10),
+                totalSuffragesExprimes: parseInt(stats.total_suffrages_exprimes, 10),
+                totalVoix,
+                byDuo,
+              },
+            },
+          });
+        } catch (error) {
+          console.error('Error fetching stats:', error);
+          send({
+            type: 'error',
+            message: 'Error fetching statistics',
+          });
+        }
+      };
+
+      // Envoyer les stats immédiatement
+      await fetchStats();
+
+      // Envoyer les stats toutes les 2 secondes
+      const interval = setInterval(async () => {
+        await fetchStats();
+      }, 2000);
+
+      // Nettoyer à la fermeture
+      req.signal.addEventListener('abort', () => {
+        clearInterval(interval);
+        controller.close();
+      });
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  });
+}
+

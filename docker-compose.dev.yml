@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: pr2026_db_dev
+    environment:
+      POSTGRES_USER: pr2026_user
+      POSTGRES_PASSWORD: pr2026_password
+      POSTGRES_DB: pr2026_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pr2026_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: pr2026_web_dev
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://pr2026_user:pr2026_password@db:5432/pr2026_db
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      RATE_LIMIT_MAX_REQUESTS: 100
+      RATE_LIMIT_WINDOW_MS: 60000
+      NODE_ENV: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    working_dir: /app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npm install && npx next dev -H 0.0.0.0"
+
+volumes:
+  postgres_data_dev:
+

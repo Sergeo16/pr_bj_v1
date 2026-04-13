@@ -1,0 +1,53 @@
+{
+  "name": "pr-2026",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev-with-ip.js",
+    "dev:next": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
+    "lint": "next lint",
+    "migrate": "npx tsx scripts/migrate.ts",
+    "reset-db": "npx tsx scripts/reset-db.ts",
+    "seed": "npx tsx scripts/seed.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build",
+    "start:dev": "node scripts/start-dev.js",
+    "start:docker:prod": "node scripts/start-docker-prod.js",
+    "start:docker:dev": "node scripts/start-docker-dev.js",
+    "start:render": "node scripts/start-render.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "lucide-react": "^0.553.0",
+    "next": "^14.2.0",
+    "pg": "^8.11.3",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-toastify": "^11.0.5",
+    "recharts": "^2.10.3",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
+    "zod": "^3.22.4",
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33",
+    "daisyui": "^4.4.19",
+    "typescript": "5.9.3",
+    "@types/react": "18.3.26",
+    "@types/react-dom": "^18.2.18",
+    "@types/node": "^20.11.0",
+    "@types/pg": "^8.10.9",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.2.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "tsx": "^4.7.1"
+  }
+}

@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Installer les dépendances système nécessaires
+RUN apk add --no-cache libc6-compat
+
+# Copier les fichiers de dépendances
+COPY package.json package-lock.json* ./
+
+# Installer les dépendances
+RUN npm ci
+
+# Copier le reste des fichiers
+COPY . .
+
+# Exposer le port
+EXPOSE 3000
+
+# La commande sera surchargée par docker-compose
+CMD ["npm", "run", "dev"]
+
