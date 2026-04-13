@@ -3,8 +3,9 @@ const path = require('path');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Retrait de output: 'standalone' pour éviter les problèmes avec les fichiers statiques sur Render
-  // next start gère automatiquement tous les fichiers CSS et assets
+  // Requis pour l’image Docker (Dockerfile copie .next/standalone).
+  // `next start` depuis la racine du projet reste valide après `next build`.
+  output: 'standalone',
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
