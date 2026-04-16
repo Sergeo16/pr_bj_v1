@@ -6,6 +6,7 @@ import { voteSchema, sanitizeString } from '@/lib/validation';
 
 // Empêcher le pré-rendu de cette route (nécessite DB)
 export const dynamic = 'force-dynamic';
+export { maxDuration } from '@/lib/serverless-route';
 
 async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
@@ -129,11 +130,14 @@ async function handler(req: NextRequest) {
         );
       }
 
-      // Déterminer le duo_id basé sur les voix
-      let duoId = 1; // Par défaut WADAGNI - TALATA
+      // Déterminer le duo_id basé sur les voix (Duo candidat 1 vs 2)
+      let duoId = 1;
       if (bureau.voixHounkpeHounwanou > bureau.voixWadagniTalata) {
-        duoId = 2; // HOUNKPE - HOUNWANOU
+        duoId = 2;
       }
+
+      const suffragesExprimes = bureau.votants - bureau.bulletinsNuls;
+      const bulletinsBlancs = 0;
 
       try {
         const result = await client.query(
@@ -156,8 +160,8 @@ async function handler(req: NextRequest) {
             bureau.inscrits,
             bureau.votants,
             bureau.bulletinsNuls,
-            bureau.bulletinsBlancs,
-            bureau.suffragesExprimes,
+            bulletinsBlancs,
+            suffragesExprimes,
             bureau.voixWadagniTalata,
             bureau.voixHounkpeHounwanou,
             bureau.observations || '',
@@ -178,8 +182,7 @@ async function handler(req: NextRequest) {
             inscrits: bureau.inscrits,
             votants: bureau.votants,
             bulletinsNuls: bureau.bulletinsNuls,
-            bulletinsBlancs: bureau.bulletinsBlancs,
-            suffragesExprimes: bureau.suffragesExprimes,
+            suffragesExprimes,
             voixWadagniTalata: bureau.voixWadagniTalata,
             voixHounkpeHounwanou: bureau.voixHounkpeHounwanou,
           }

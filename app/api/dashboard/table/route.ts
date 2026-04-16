@@ -4,6 +4,7 @@ import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 // Empêcher le pré-rendu de cette route (nécessite DB)
 export const dynamic = 'force-dynamic';
+export { maxDuration } from '@/lib/serverless-route';
 
 async function handler(req: NextRequest) {
   if (req.method !== 'GET') {
@@ -27,8 +28,7 @@ async function handler(req: NextRequest) {
             COALESCE(SUM(v.inscrits), 0) as total_inscrits,
             COALESCE(SUM(v.votants), 0) as total_votants,
             COALESCE(SUM(v.bulletins_nuls), 0) as total_bulletins_nuls,
-            COALESCE(SUM(v.bulletins_blancs), 0) as total_bulletins_blancs,
-            COALESCE(SUM(v.suffrages_exprimes), 0) as total_suffrages_exprimes,
+            COALESCE(SUM(v.votants), 0) - COALESCE(SUM(v.bulletins_nuls), 0) as total_suffrages_exprimes,
             COALESCE(SUM(v.voix_wadagni_talata), 0) as total_wadagni_talata,
             COALESCE(SUM(v.voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
           FROM departement dept
@@ -49,8 +49,7 @@ async function handler(req: NextRequest) {
             COALESCE(SUM(v.inscrits), 0) as total_inscrits,
             COALESCE(SUM(v.votants), 0) as total_votants,
             COALESCE(SUM(v.bulletins_nuls), 0) as total_bulletins_nuls,
-            COALESCE(SUM(v.bulletins_blancs), 0) as total_bulletins_blancs,
-            COALESCE(SUM(v.suffrages_exprimes), 0) as total_suffrages_exprimes,
+            COALESCE(SUM(v.votants), 0) - COALESCE(SUM(v.bulletins_nuls), 0) as total_suffrages_exprimes,
             COALESCE(SUM(v.voix_wadagni_talata), 0) as total_wadagni_talata,
             COALESCE(SUM(v.voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
           FROM commune c
@@ -73,8 +72,7 @@ async function handler(req: NextRequest) {
             COALESCE(SUM(v.inscrits), 0) as total_inscrits,
             COALESCE(SUM(v.votants), 0) as total_votants,
             COALESCE(SUM(v.bulletins_nuls), 0) as total_bulletins_nuls,
-            COALESCE(SUM(v.bulletins_blancs), 0) as total_bulletins_blancs,
-            COALESCE(SUM(v.suffrages_exprimes), 0) as total_suffrages_exprimes,
+            COALESCE(SUM(v.votants), 0) - COALESCE(SUM(v.bulletins_nuls), 0) as total_suffrages_exprimes,
             COALESCE(SUM(v.voix_wadagni_talata), 0) as total_wadagni_talata,
             COALESCE(SUM(v.voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
           FROM arrondissement a
@@ -99,8 +97,7 @@ async function handler(req: NextRequest) {
             COALESCE(SUM(vote.inscrits), 0) as total_inscrits,
             COALESCE(SUM(vote.votants), 0) as total_votants,
             COALESCE(SUM(vote.bulletins_nuls), 0) as total_bulletins_nuls,
-            COALESCE(SUM(vote.bulletins_blancs), 0) as total_bulletins_blancs,
-            COALESCE(SUM(vote.suffrages_exprimes), 0) as total_suffrages_exprimes,
+            COALESCE(SUM(vote.votants), 0) - COALESCE(SUM(vote.bulletins_nuls), 0) as total_suffrages_exprimes,
             COALESCE(SUM(vote.voix_wadagni_talata), 0) as total_wadagni_talata,
             COALESCE(SUM(vote.voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
           FROM village v
@@ -127,8 +124,7 @@ async function handler(req: NextRequest) {
             COALESCE(SUM(vote.inscrits), 0) as total_inscrits,
             COALESCE(SUM(vote.votants), 0) as total_votants,
             COALESCE(SUM(vote.bulletins_nuls), 0) as total_bulletins_nuls,
-            COALESCE(SUM(vote.bulletins_blancs), 0) as total_bulletins_blancs,
-            COALESCE(SUM(vote.suffrages_exprimes), 0) as total_suffrages_exprimes,
+            COALESCE(SUM(vote.votants), 0) - COALESCE(SUM(vote.bulletins_nuls), 0) as total_suffrages_exprimes,
             COALESCE(SUM(vote.voix_wadagni_talata), 0) as total_wadagni_talata,
             COALESCE(SUM(vote.voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
           FROM centre c
@@ -157,8 +153,7 @@ async function handler(req: NextRequest) {
             COALESCE(SUM(vote.inscrits), 0) as total_inscrits,
             COALESCE(SUM(vote.votants), 0) as total_votants,
             COALESCE(SUM(vote.bulletins_nuls), 0) as total_bulletins_nuls,
-            COALESCE(SUM(vote.bulletins_blancs), 0) as total_bulletins_blancs,
-            COALESCE(SUM(vote.suffrages_exprimes), 0) as total_suffrages_exprimes,
+            COALESCE(SUM(vote.votants), 0) - COALESCE(SUM(vote.bulletins_nuls), 0) as total_suffrages_exprimes,
             COALESCE(SUM(vote.voix_wadagni_talata), 0) as total_wadagni_talata,
             COALESCE(SUM(vote.voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
           FROM bureau_vote bv

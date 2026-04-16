@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { DUO_CANDIDAT_1_LABEL, DUO_CANDIDAT_2_LABEL } from '@/lib/election-labels';
 
 interface DuoStat {
   id: number;
@@ -16,7 +17,6 @@ interface DashboardData {
     totalVotants: number;
     tauxParticipation: string;
     totalBulletinsNuls: number;
-    totalBulletinsBlancs: number;
     totalSuffragesExprimes: number;
     totalVoix: number;
     byDuo: DuoStat[];
@@ -26,8 +26,8 @@ interface DashboardData {
 // Couleurs pour les légendes et barres (couleurs vives)
 const COLORS = ['#0066FF', '#00D9A5'];
 const DUO_COLORS: Record<string, string> = {
-  'WADAGNI - TALATA': '#0066FF', // Bleu vif
-  'HOUNKPE - HOUNWANOU': '#00D9A5', // Vert vif
+  [DUO_CANDIDAT_1_LABEL]: '#0066FF',
+  [DUO_CANDIDAT_2_LABEL]: '#00D9A5',
 };
 
 // Fonction helper pour formater les nombres avec espace comme séparateur de milliers
@@ -133,10 +133,12 @@ export default function DashboardPage() {
       }
     };
 
-    eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
-      // En cas d'erreur, fermer la connexion
-      eventSource.close();
+    eventSource.onerror = () => {
+      // Ne pas appeler close() ici : le navigateur reconnecte tout seul après une coupure
+      // (timeouts serverless Vercel, réseau, etc.), ce qui maintient le temps réel comme sur Render.
+      if (eventSource.readyState === EventSource.CLOSED) {
+        console.warn('SSE : connexion fermée, reconnexion automatique si le serveur répond.');
+      }
     };
 
     return () => {
@@ -317,7 +319,7 @@ export default function DashboardPage() {
         <div className="card-body p-4 sm:p-6">
           <h2 className="card-title text-xl sm:text-2xl mb-4">Synthèse totale</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="stat bg-base-200 rounded-lg p-4">
               <div className="stat-title">Inscrits</div>
               <div className="stat-value text-2xl">{formatNumber(data.national.totalInscrits)}</div>
@@ -339,12 +341,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="stat bg-base-200 rounded-lg p-4">
-              <div className="stat-title">Bulletins blancs</div>
-              <div className="stat-value text-2xl">{formatNumber(data.national.totalBulletinsBlancs)}</div>
-            </div>
-            
-            <div className="stat bg-base-200 rounded-lg p-4">
-              <div className="stat-title">Suffrages exprimés</div>
+              <div className="stat-title">Suffrages valablement exprimés</div>
               <div className="stat-value text-2xl">{formatNumber(data.national.totalSuffragesExprimes)}</div>
             </div>
             
@@ -410,10 +407,9 @@ export default function DashboardPage() {
                       <th>Votants</th>
                       <th>Taux participation</th>
                       <th>Bulletins nuls</th>
-                      <th>Bulletins blancs</th>
-                      <th>Suffrages exprimés</th>
-                      <th>WADAGNI - TALATA</th>
-                      <th>HOUNKPE - HOUNWANOU</th>
+                      <th>Suffrages valablement exprimés</th>
+                      <th>{DUO_CANDIDAT_1_LABEL}</th>
+                      <th>{DUO_CANDIDAT_2_LABEL}</th>
                       <th>Total voix</th>
                     </>
                   )}
@@ -425,10 +421,9 @@ export default function DashboardPage() {
                       <th>Votants</th>
                       <th>Taux participation</th>
                       <th>Bulletins nuls</th>
-                      <th>Bulletins blancs</th>
-                      <th>Suffrages exprimés</th>
-                      <th>WADAGNI - TALATA</th>
-                      <th>HOUNKPE - HOUNWANOU</th>
+                      <th>Suffrages valablement exprimés</th>
+                      <th>{DUO_CANDIDAT_1_LABEL}</th>
+                      <th>{DUO_CANDIDAT_2_LABEL}</th>
                       <th>Total voix</th>
                     </>
                   )}
@@ -441,10 +436,9 @@ export default function DashboardPage() {
                       <th>Votants</th>
                       <th>Taux participation</th>
                       <th>Bulletins nuls</th>
-                      <th>Bulletins blancs</th>
-                      <th>Suffrages exprimés</th>
-                      <th>WADAGNI - TALATA</th>
-                      <th>HOUNKPE - HOUNWANOU</th>
+                      <th>Suffrages valablement exprimés</th>
+                      <th>{DUO_CANDIDAT_1_LABEL}</th>
+                      <th>{DUO_CANDIDAT_2_LABEL}</th>
                       <th>Total voix</th>
                     </>
                   )}
@@ -458,10 +452,9 @@ export default function DashboardPage() {
                       <th>Votants</th>
                       <th>Taux participation</th>
                       <th>Bulletins nuls</th>
-                      <th>Bulletins blancs</th>
-                      <th>Suffrages exprimés</th>
-                      <th>WADAGNI - TALATA</th>
-                      <th>HOUNKPE - HOUNWANOU</th>
+                      <th>Suffrages valablement exprimés</th>
+                      <th>{DUO_CANDIDAT_1_LABEL}</th>
+                      <th>{DUO_CANDIDAT_2_LABEL}</th>
                       <th>Total voix</th>
                     </>
                   )}
@@ -476,10 +469,9 @@ export default function DashboardPage() {
                       <th>Votants</th>
                       <th>Taux participation</th>
                       <th>Bulletins nuls</th>
-                      <th>Bulletins blancs</th>
-                      <th>Suffrages exprimés</th>
-                      <th>WADAGNI - TALATA</th>
-                      <th>HOUNKPE - HOUNWANOU</th>
+                      <th>Suffrages valablement exprimés</th>
+                      <th>{DUO_CANDIDAT_1_LABEL}</th>
+                      <th>{DUO_CANDIDAT_2_LABEL}</th>
                       <th>Total voix</th>
                     </>
                   )}
@@ -495,10 +487,9 @@ export default function DashboardPage() {
                       <th>Votants</th>
                       <th>Taux participation</th>
                       <th>Bulletins nuls</th>
-                      <th>Bulletins blancs</th>
-                      <th>Suffrages exprimés</th>
-                      <th>WADAGNI - TALATA</th>
-                      <th>HOUNKPE - HOUNWANOU</th>
+                      <th>Suffrages valablement exprimés</th>
+                      <th>{DUO_CANDIDAT_1_LABEL}</th>
+                      <th>{DUO_CANDIDAT_2_LABEL}</th>
                       <th>Total voix</th>
                     </>
                   )}
@@ -514,8 +505,8 @@ export default function DashboardPage() {
                       <th>Date</th>
                       <th>Inscrits</th>
                       <th>Votants</th>
-                      <th>WADAGNI - TALATA</th>
-                      <th>HOUNKPE - HOUNWANOU</th>
+                      <th>{DUO_CANDIDAT_1_LABEL}</th>
+                      <th>{DUO_CANDIDAT_2_LABEL}</th>
                     </>
                   )}
                 </tr>
@@ -536,7 +527,6 @@ export default function DashboardPage() {
                           <td>{formatNumber(votants)}</td>
                           <td>{tauxParticipation}%</td>
                           <td>{formatNumber(parseInt(row.total_bulletins_nuls || 0, 10))}</td>
-                          <td>{formatNumber(parseInt(row.total_bulletins_blancs || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_suffrages_exprimes || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_wadagni_talata || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_hounkpe_hounwanou || 0, 10))}</td>
@@ -551,7 +541,6 @@ export default function DashboardPage() {
                           <td>{formatNumber(votants)}</td>
                           <td>{tauxParticipation}%</td>
                           <td>{formatNumber(parseInt(row.total_bulletins_nuls || 0, 10))}</td>
-                          <td>{formatNumber(parseInt(row.total_bulletins_blancs || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_suffrages_exprimes || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_wadagni_talata || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_hounkpe_hounwanou || 0, 10))}</td>
@@ -567,7 +556,6 @@ export default function DashboardPage() {
                           <td>{formatNumber(votants)}</td>
                           <td>{tauxParticipation}%</td>
                           <td>{formatNumber(parseInt(row.total_bulletins_nuls || 0, 10))}</td>
-                          <td>{formatNumber(parseInt(row.total_bulletins_blancs || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_suffrages_exprimes || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_wadagni_talata || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_hounkpe_hounwanou || 0, 10))}</td>
@@ -584,7 +572,6 @@ export default function DashboardPage() {
                           <td>{formatNumber(votants)}</td>
                           <td>{tauxParticipation}%</td>
                           <td>{formatNumber(parseInt(row.total_bulletins_nuls || 0, 10))}</td>
-                          <td>{formatNumber(parseInt(row.total_bulletins_blancs || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_suffrages_exprimes || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_wadagni_talata || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_hounkpe_hounwanou || 0, 10))}</td>
@@ -602,7 +589,6 @@ export default function DashboardPage() {
                           <td>{formatNumber(votants)}</td>
                           <td>{tauxParticipation}%</td>
                           <td>{formatNumber(parseInt(row.total_bulletins_nuls || 0, 10))}</td>
-                          <td>{formatNumber(parseInt(row.total_bulletins_blancs || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_suffrages_exprimes || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_wadagni_talata || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_hounkpe_hounwanou || 0, 10))}</td>
@@ -621,7 +607,6 @@ export default function DashboardPage() {
                           <td>{formatNumber(votants)}</td>
                           <td>{tauxParticipation}%</td>
                           <td>{formatNumber(parseInt(row.total_bulletins_nuls || 0, 10))}</td>
-                          <td>{formatNumber(parseInt(row.total_bulletins_blancs || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_suffrages_exprimes || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_wadagni_talata || 0, 10))}</td>
                           <td>{formatNumber(parseInt(row.total_hounkpe_hounwanou || 0, 10))}</td>

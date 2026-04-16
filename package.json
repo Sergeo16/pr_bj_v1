@@ -6,6 +6,7 @@
     "dev": "node scripts/dev-with-ip.js",
     "dev:next": "next dev -H 0.0.0.0",
     "build": "next build",
+    "build:vercel": "node scripts/vercel-build.js",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
     "migrate": "npx tsx scripts/migrate.ts",
@@ -18,7 +19,11 @@
     "start:dev": "node scripts/start-dev.js",
     "start:docker:prod": "node scripts/start-docker-prod.js",
     "start:docker:dev": "node scripts/start-docker-dev.js",
-    "start:render": "node scripts/start-render.js"
+    "start:render": "node scripts/start-render.js",
+    "vercel:link": "npx vercel@latest link",
+    "vercel:deploy": "npx vercel@latest deploy --prod",
+    "vercel:deploy:preview": "npx vercel@latest deploy",
+    "vercel:env-pull": "npx vercel@latest env pull .env.vercel.local"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

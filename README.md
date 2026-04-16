@@ -529,6 +529,10 @@ Pour déployer sur Render après avoir pushé sur GitHub, consultez le guide com
 4. Render détectera automatiquement `render.yaml` et configurera tout
 5. Les migrations et le seed s'exécutent automatiquement au démarrage
 
+### Déploiement sur Vercel (plan Hobby)
+
+Guide détaillé, variables d’environnement et scripts CLI : **[VERCEL.md](./VERCEL.md)**.
+
 ### Production avec Docker
 
 1. **Construire l'image**:

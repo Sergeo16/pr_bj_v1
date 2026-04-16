@@ -1,8 +1,10 @@
 import { NextRequest } from 'next/server';
 import { getPool } from '@/lib/db';
+import { DUO_CANDIDAT_1_LABEL, DUO_CANDIDAT_2_LABEL } from '@/lib/election-labels';
 
 // Empêcher le pré-rendu de cette route (nécessite DB)
 export const dynamic = 'force-dynamic';
+export { maxDuration } from '@/lib/serverless-route';
 
 export async function GET(req: NextRequest) {
   const encoder = new TextEncoder();
@@ -24,8 +26,7 @@ export async function GET(req: NextRequest) {
               COALESCE(SUM(inscrits), 0) as total_inscrits,
               COALESCE(SUM(votants), 0) as total_votants,
               COALESCE(SUM(bulletins_nuls), 0) as total_bulletins_nuls,
-              COALESCE(SUM(bulletins_blancs), 0) as total_bulletins_blancs,
-              COALESCE(SUM(suffrages_exprimes), 0) as total_suffrages_exprimes,
+              COALESCE(SUM(votants), 0) - COALESCE(SUM(bulletins_nuls), 0) as total_suffrages_exprimes,
               COALESCE(SUM(voix_wadagni_talata), 0) as total_wadagni_talata,
               COALESCE(SUM(voix_hounkpe_hounwanou), 0) as total_hounkpe_hounwanou
             FROM vote
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
           const byDuo = [
             {
               id: 1,
-              label: 'WADAGNI - TALATA',
+              label: DUO_CANDIDAT_1_LABEL,
               total: parseInt(stats.total_wadagni_talata, 10),
               percentage: totalVoix > 0 
                 ? ((parseInt(stats.total_wadagni_talata, 10) / totalVoix) * 100).toFixed(2)
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
             },
             {
               id: 2,
-              label: 'HOUNKPE - HOUNWANOU',
+              label: DUO_CANDIDAT_2_LABEL,
               total: parseInt(stats.total_hounkpe_hounwanou, 10),
               percentage: totalVoix > 0
                 ? ((parseInt(stats.total_hounkpe_hounwanou, 10) / totalVoix) * 100).toFixed(2)
@@ -67,7 +68,6 @@ export async function GET(req: NextRequest) {
                 totalVotants,
                 tauxParticipation,
                 totalBulletinsNuls: parseInt(stats.total_bulletins_nuls, 10),
-                totalBulletinsBlancs: parseInt(stats.total_bulletins_blancs, 10),
                 totalSuffragesExprimes: parseInt(stats.total_suffrages_exprimes, 10),
                 totalVoix,
                 byDuo,

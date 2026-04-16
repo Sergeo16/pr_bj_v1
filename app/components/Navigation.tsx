@@ -8,7 +8,6 @@ import { Menu, X } from 'lucide-react';
 export default function Navigation() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const showDashboard = pathname?.includes('/dashboard');
 
   return (
     <>
@@ -28,25 +27,25 @@ export default function Navigation() {
             <li>
               <Link
                 href="/"
-                className="relative inline-block mx-2 py-1 text-white md:text-2xl hover:text-accent transition duration-300
+                className={`relative inline-block mx-2 py-1 md:text-2xl transition duration-300
                           before:content-[''] before:absolute before:left-0 before:bottom-0 before:h-[2px] before:w-0 
-                          before:bg-accent before:transition-all before:duration-300 hover:before:w-full"
+                          before:bg-accent before:transition-all before:duration-300 hover:before:w-full
+                          ${pathname === '/' ? 'text-accent' : 'text-white hover:text-accent'}`}
               >
                 Vote
               </Link>
             </li>
-            {showDashboard && (
-              <li>
-                <Link
-                  href="/dashboard"
-                  className="relative inline-block mx-2 py-1 text-white md:text-2xl hover:text-accent transition duration-300
+            <li>
+              <Link
+                href="/dashboard"
+                className={`relative inline-block mx-2 py-1 md:text-2xl transition duration-300
                             before:content-[''] before:absolute before:left-0 before:bottom-0 before:h-[2px] before:w-0 
-                            before:bg-accent before:transition-all before:duration-300 hover:before:w-full"
-                >
-                  Dashboard
-                </Link>
-              </li>
-            )}
+                            before:bg-accent before:transition-all before:duration-300 hover:before:w-full
+                            ${pathname === '/dashboard' ? 'text-accent' : 'text-white hover:text-accent'}`}
+              >
+                Dashboard
+              </Link>
+            </li>
           </ul>
 
           {/* Menu Mobile Toggle */}
@@ -68,26 +67,26 @@ export default function Navigation() {
               <Link
                 href="/"
                 onClick={() => setIsOpen(false)}
-                className="relative inline-block py-1 text-white text-xl hover:text-accent transition duration-300
+                className={`relative inline-block py-1 text-xl transition duration-300
                           before:content-[''] before:absolute before:left-0 before:bottom-0 before:h-[2px] before:w-0 
-                          before:bg-accent before:transition-all before:duration-300 hover:before:w-full"
+                          before:bg-accent before:transition-all before:duration-300 hover:before:w-full
+                          ${pathname === '/' ? 'text-accent' : 'text-white hover:text-accent'}`}
               >
                 Vote
               </Link>
             </li>
-            {showDashboard && (
-              <li>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setIsOpen(false)}
-                  className="relative inline-block py-1 text-white text-xl hover:text-accent transition duration-300
+            <li>
+              <Link
+                href="/dashboard"
+                onClick={() => setIsOpen(false)}
+                className={`relative inline-block py-1 text-xl transition duration-300
                             before:content-[''] before:absolute before:left-0 before:bottom-0 before:h-[2px] before:w-0 
-                            before:bg-accent before:transition-all before:duration-300 hover:before:w-full"
-                >
-                  Dashboard
-                </Link>
-              </li>
-            )}
+                            before:bg-accent before:transition-all before:duration-300 hover:before:w-full
+                            ${pathname === '/dashboard' ? 'text-accent' : 'text-white hover:text-accent'}`}
+              >
+                Dashboard
+              </Link>
+            </li>
           </ul>
         </div>
       )}

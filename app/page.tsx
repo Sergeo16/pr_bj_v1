@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
+import { DUO_CANDIDAT_1_LABEL, DUO_CANDIDAT_2_LABEL } from '@/lib/election-labels';
 
 interface Option {
   id: number;
@@ -18,8 +19,6 @@ interface BureauVoteData {
   inscrits: number;
   votants: number;
   bulletinsNuls: number;
-  bulletinsBlancs: number;
-  suffragesExprimes: number;
   voixWadagniTalata: number;
   voixHounkpeHounwanou: number;
   observations: string;
@@ -189,8 +188,6 @@ export default function HomePage() {
         inscrits: 0,
         votants: 0,
         bulletinsNuls: 0,
-        bulletinsBlancs: 0,
-        suffragesExprimes: 0,
         voixWadagniTalata: 0,
         voixHounkpeHounwanou: 0,
         observations: '',
@@ -215,7 +212,7 @@ export default function HomePage() {
     setBureauxVote(updated);
   };
 
-  const validateBureauVote = (bureau: BureauVoteData, index: number): { errors: Set<string>; message: string | null } => {
+  const validateBureauVote = (bureau: BureauVoteData): { errors: Set<string>; message: string | null } => {
     const errors = new Set<string>();
     let message: string | null = null;
 
@@ -223,37 +220,19 @@ export default function HomePage() {
       errors.add('votants');
       message = 'Le nombre de votants doit être inférieur ou égal au nombre d\'inscrits';
     }
-    if (bureau.suffragesExprimes > bureau.votants) {
-      errors.add('suffragesExprimes');
-      if (!message) message = 'Le nombre de suffrages exprimés doit être inférieur ou égal au nombre de votants';
-    }
     if (bureau.bulletinsNuls > bureau.votants) {
       errors.add('bulletinsNuls');
       if (!message) message = 'Le nombre de bulletins nuls doit être inférieur ou égal au nombre de votants';
     }
-    if (bureau.bulletinsBlancs > bureau.votants) {
-      errors.add('bulletinsBlancs');
-      if (!message) message = 'Le nombre de bulletins blancs doit être inférieur ou égal au nombre de votants';
-    }
-    // Vérifier que Votants = Suffrages exprimés + Bulletins nuls + Bulletins blancs
-    const totalBulletins = bureau.suffragesExprimes + bureau.bulletinsNuls + bureau.bulletinsBlancs;
-    if (bureau.votants !== totalBulletins) {
-      errors.add('votants');
-      errors.add('suffragesExprimes');
-      errors.add('bulletinsNuls');
-      errors.add('bulletinsBlancs');
-      if (!message) {
-        message = `Le nombre de votants (${bureau.votants}) doit être égal à la somme des suffrages exprimés (${bureau.suffragesExprimes}) + bulletins nuls (${bureau.bulletinsNuls}) + bulletins blancs (${bureau.bulletinsBlancs}) = ${totalBulletins}`;
-      }
-    }
-    // Vérifier que Suffrages exprimés = somme des deux duos
+    const suffrages = bureau.votants - bureau.bulletinsNuls;
     const totalVoix = bureau.voixWadagniTalata + bureau.voixHounkpeHounwanou;
-    if (bureau.suffragesExprimes !== totalVoix) {
-      errors.add('suffragesExprimes');
+    if (suffrages !== totalVoix) {
+      errors.add('votants');
+      errors.add('bulletinsNuls');
       errors.add('voixWadagniTalata');
       errors.add('voixHounkpeHounwanou');
       if (!message) {
-        message = `Le nombre de suffrages exprimés (${bureau.suffragesExprimes}) doit être égal à la somme des voix des deux duos (${bureau.voixWadagniTalata} + ${bureau.voixHounkpeHounwanou} = ${totalVoix})`;
+        message = `${DUO_CANDIDAT_1_LABEL} + ${DUO_CANDIDAT_2_LABEL} (${totalVoix}) doit égaler Votants − Bulletins nuls (${suffrages}).`;
       }
     }
 
@@ -285,11 +264,11 @@ export default function HomePage() {
     // Valider les contraintes pour chaque bureau de vote
     const newValidationErrors: Record<number, Set<string>> = {};
     for (let i = 0; i < bureauxVote.length; i++) {
-      const { errors, message } = validateBureauVote(bureauxVote[i], i);
+      const { errors, message } = validateBureauVote(bureauxVote[i]);
       if (errors.size > 0) {
         newValidationErrors[i] = errors;
         if (message) {
-          toast.error(`Bureau de vote ${i + 1}: ${message}`);
+          toast.error(`Saisie n° ${i + 1}: ${message}`);
         }
       }
     }
@@ -318,7 +297,25 @@ export default function HomePage() {
           arrondissementId: selectedArrondissement,
           villageId: selectedVillage,
           centreId: selectedCentre,
-          bureauxVote,
+          bureauxVote: bureauxVote.map(
+            ({
+              bureauVoteId,
+              inscrits,
+              votants,
+              bulletinsNuls,
+              voixWadagniTalata,
+              voixHounkpeHounwanou,
+              observations,
+            }) => ({
+              bureauVoteId,
+              inscrits,
+              votants,
+              bulletinsNuls,
+              voixWadagniTalata,
+              voixHounkpeHounwanou,
+              observations,
+            })
+          ),
         }),
       });
 
@@ -510,7 +507,7 @@ export default function HomePage() {
               {bureauxVote.map((bureau, index) => (
                 <div key={index} className="card bg-base-200 p-4 mb-4">
                   <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-semibold">Bureau de vote {index + 1}</h4>
+                    <h4 className="font-semibold">Saisie n° {index + 1}</h4>
                     <button
                       type="button"
                       onClick={() => removeBureauVote(index)}
@@ -623,61 +620,25 @@ export default function HomePage() {
 
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text">Bulletins blancs *</span>
+                        <span className="label-text">Suffrages valablement exprimés</span>
                       </label>
                       <input
                         type="number"
-                        className={`input input-bordered ${
-                          validationErrors[index]?.has('bulletinsBlancs') ? 'input-error' : ''
-                        }`}
-                        placeholder="0"
-                        value={bureau.bulletinsBlancs}
-                        onChange={(e) => updateBureauVote(index, 'bulletinsBlancs', parseInt(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        onClick={(e) => (e.target as HTMLInputElement).select()}
-                        max={bureau.votants}
-                        min="0"
-                        required
+                        className="input input-bordered bg-base-300"
+                        readOnly
+                        value={Math.max(0, bureau.votants - bureau.bulletinsNuls)}
+                        aria-readonly
                       />
-                      {validationErrors[index]?.has('bulletinsBlancs') && (
-                        <label className="label">
-                          <span className="label-text-alt text-error">
-                            Erreur de validation sur le champ Bulletins blancs
-                          </span>
-                        </label>
-                      )}
+                      <label className="label">
+                        <span className="label-text-alt text-base-content/70">
+                          Calcul automatique : Votants − Bulletins nuls
+                        </span>
+                      </label>
                     </div>
 
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text">Suffrages valablement exprimés *</span>
-                      </label>
-                      <input
-                        type="number"
-                        className={`input input-bordered ${
-                          validationErrors[index]?.has('suffragesExprimes') ? 'input-error' : ''
-                        }`}
-                        placeholder="0"
-                        value={bureau.suffragesExprimes}
-                        onChange={(e) => updateBureauVote(index, 'suffragesExprimes', parseInt(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        onClick={(e) => (e.target as HTMLInputElement).select()}
-                        max={bureau.votants}
-                        min="0"
-                        required
-                      />
-                      {validationErrors[index]?.has('suffragesExprimes') && (
-                        <label className="label">
-                          <span className="label-text-alt text-error">
-                            Erreur de validation sur le champ Suffrages exprimés
-                          </span>
-                        </label>
-                      )}
-                    </div>
-
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">WADAGNI - TALATA *</span>
+                        <span className="label-text">{DUO_CANDIDAT_1_LABEL} *</span>
                       </label>
                       <input
                         type="number"
@@ -695,7 +656,7 @@ export default function HomePage() {
                       {validationErrors[index]?.has('voixWadagniTalata') && (
                         <label className="label">
                           <span className="label-text-alt text-error">
-                            Erreur de validation sur le champ WADAGNI - TALATA
+                            Erreur de validation sur {DUO_CANDIDAT_1_LABEL}
                           </span>
                         </label>
                       )}
@@ -703,7 +664,7 @@ export default function HomePage() {
 
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text">HOUNKPE - HOUNWANOU *</span>
+                        <span className="label-text">{DUO_CANDIDAT_2_LABEL} *</span>
                       </label>
                       <input
                         type="number"
@@ -721,7 +682,7 @@ export default function HomePage() {
                       {validationErrors[index]?.has('voixHounkpeHounwanou') && (
                         <label className="label">
                           <span className="label-text-alt text-error">
-                            Erreur de validation sur le champ HOUNKPE - HOUNWANOU
+                            Erreur de validation sur {DUO_CANDIDAT_2_LABEL}
                           </span>
                         </label>
                       )}

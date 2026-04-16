@@ -4,6 +4,7 @@ import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 // Empêcher le pré-rendu de cette route (nécessite DB)
 export const dynamic = 'force-dynamic';
+export { maxDuration } from '@/lib/serverless-route';
 
 async function handler(req: NextRequest) {
   if (req.method !== 'GET') {

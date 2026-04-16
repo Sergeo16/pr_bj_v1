@@ -15,8 +15,8 @@ CREATE INDEX IF NOT EXISTS idx_bureau_vote_name ON bureau_vote(name);
 
 -- Modifier la table duo pour remplacer par les deux duos fixes
 -- D'abord mettre à jour les labels
-UPDATE duo SET label = 'WADAGNI - TALATA' WHERE id = 1;
-UPDATE duo SET label = 'HOUNKPE - HOUNWANOU' WHERE id = 2;
+UPDATE duo SET label = 'Duo candidat 1' WHERE id = 1;
+UPDATE duo SET label = 'Duo candidat 2' WHERE id = 2;
 
 -- Mettre à jour les votes qui référencent des duos > 2 pour les rediriger vers le duo 1 ou 2
 -- (on les met tous sur le duo 1 par défaut, mais vous pouvez ajuster la logique)
