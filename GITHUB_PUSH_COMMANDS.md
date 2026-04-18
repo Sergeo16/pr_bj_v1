@@ -36,7 +36,7 @@ git status
 
 ### 7. Créer un commit avec un message descriptif
 ```bash
-git commit -m "PR2026BJ V3 : Préparation pour déploiement Render: ajout script start-render.js, render.yaml et documentation complète"
+git commit -m "PR BJ V3 : Préparation pour déploiement Render: ajout script start-render.js, render.yaml et documentation complète"
 ```
 
 ### 8. Pousser vers GitHub
