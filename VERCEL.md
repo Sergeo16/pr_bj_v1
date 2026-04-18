@@ -27,6 +27,74 @@ Optionnel :
 
 **Important :** pour Preview, utilisez de préférence une **base dédiée** (ou un schéma isolé) afin de ne pas appliquer des migrations de test sur la base de production.
 
+## Créer une base PostgreSQL accessible depuis Internet (Neon / Supabase)
+
+Vercel n’héberge pas PostgreSQL. Il faut donc utiliser un service managé, puis renseigner `DATABASE_URL` dans Vercel.
+
+### Recommandation rapide (pour PR_BJ_V1 sur Vercel)
+
+- **Choix recommandé : Neon**.
+  - **Pourquoi** : très bon “fit” **serverless** (Vercel), **pooling** simple, et **branching** pratique pour isoler des environnements Preview sans risque.
+- **Choisis Supabase** si tu veux aussi une plateforme **Auth / Storage / Realtime** autour de Postgres.
+  - **Pourquoi** : tu gagnes des briques produit, mais ça implique souvent d’adopter leurs patterns (RLS/policies) si tu exposes des accès côté client.
+
+### Point important : IP Vercel et sécurité réseau
+
+Sur Vercel, les fonctions serverless sortent avec des **IP publiques variables**. En pratique :
+
+- **Ne compte pas** sur une “allowlist IP fixe” (souvent incompatible avec Vercel Hobby).
+- Sécurise plutôt via :
+  - **mot de passe fort**,
+  - **SSL obligatoire** (`sslmode=require`),
+  - **rôles/permissions** Postgres minimales,
+  - **pooling** pour éviter l’explosion du nombre de connexions.
+
+### Neon (gratuit) — création + connexion
+
+1. Crée un compte Neon, puis **New Project**.
+2. Choisis une **région** proche de tes utilisateurs (et idéalement proche de Vercel).
+3. Dans Neon, récupère la/les chaînes de connexion :
+   - une URL **poolée** (souvent recommandée pour serverless),
+   - une URL **directe** (utile pour certaines migrations/outils).
+4. Dans Vercel, ajoute `DATABASE_URL` (en **Production** au minimum).
+
+**Spécificités Neon à connaître**
+
+- **Pooling “serverless-friendly”** : fortement recommandé sur Vercel pour limiter les connexions simultanées.
+- **Branching** : tu peux créer une branche de base pour les previews (ou une base dédiée) et éviter de toucher la prod.
+- **Deux URLs possibles** :
+  - **Poolée** : idéale pour l’exécution applicative (API/routes).
+  - **Directe** : parfois nécessaire pour des migrations qui n’aiment pas les poolers.
+
+**Conseil pratique migrations (PR_BJ_V1)**
+
+Le build Vercel peut exécuter `npm run migrate` (voir section “Comportement du build”). Si tes migrations échouent à cause du pooler :
+
+- utilise temporairement l’URL **directe** comme `DATABASE_URL` le temps du build/migrate, ou
+- exécute les migrations **manuellement** (en local/CI) avec l’URL directe, puis remets l’URL poolée pour l’exécution courante.
+
+### Supabase (gratuit) — création + connexion
+
+1. Crée un compte Supabase, puis **New project**.
+2. Choisis une **région** et définis un mot de passe DB.
+3. Récupère l’URL Postgres dans les paramètres de connexion (format `postgresql://...`).
+4. Dans Vercel, ajoute `DATABASE_URL`.
+
+**Spécificités Supabase à connaître**
+
+- Supabase est **Postgres + plateforme** (Auth/Storage/Realtime/etc.). Tu peux n’utiliser **que** Postgres, mais l’outillage Supabase pousse parfois à utiliser aussi leurs API.
+- Si tu accèdes à des données depuis le **client** (navigateur), il faut comprendre et configurer **RLS (Row Level Security)** ; sinon, garde l’accès DB strictement côté serveur (recommandé pour PR_BJ_V1).
+- Selon ton plan/config, tu peux avoir des options de **pooling** (souvent via PgBouncer). Sur Vercel, privilégie une URL compatible pooling si disponible.
+
+### Bonnes pratiques Vercel (à appliquer quel que soit le fournisseur)
+
+- **Jamais** exposer `DATABASE_URL` au navigateur (ne pas la préfixer `NEXT_PUBLIC_`).
+- Utiliser `?sslmode=require` si ce n’est pas déjà inclus.
+- En cas de **“trop de connexions”** :
+  - réduire `PG_POOL_MAX` côté app (voir variables),
+  - privilégier une URL “pooler/pooled” côté provider,
+  - éviter les requêtes longues en rafale (et préférer des jobs/batch si nécessaire).
+
 ## Comportement du build sur Vercel
 
 Le fichier `vercel.json` définit :
